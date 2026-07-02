@@ -10,6 +10,7 @@ class Shader
         // std uniform 'setters'
         void set_int(std::string uniform, int value);
         void set_float(std::string uniform, float value);
+        void set_mat4(std::string uniform, glm::mat4 value);
 
         unsigned int shaderID;
 

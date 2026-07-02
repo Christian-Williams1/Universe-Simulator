@@ -9,6 +9,7 @@ Body::Body(Body *parent, glm::vec3 color, KeplerianElements elements, float size
         this->parent = parent;
         this->mass = mass;//1.0f;
         this->orbit = new Orbit(parent->mass, mass, elements);
+        this->lightSource = true;
     }
     else
     {
@@ -31,6 +32,11 @@ glm::vec3 Body::get_color()
     return this->colour;
 }
 
+bool Body::get_type()
+{
+    return this->lightSource;
+}
+
 // setters
 void Body::set_colour(glm::vec3 colour)
 {
@@ -46,6 +52,8 @@ void Body::orbit_traverse(glm::dvec3 &position)
         child->orbit_traverse(this->position);
     }
 }
+
+
 
 glm::vec3 Body::next_position()
 {

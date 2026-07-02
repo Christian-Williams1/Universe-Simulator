@@ -23,13 +23,24 @@ Body *Player::get_body()
 // if it is then we can render local space
 void Player::check_critical_radius()
 {
-    if (glm::distance(worldPos, body->position) < 2*body->get_size()*criticalRadiusScalar)
+    // case: outside critical radius
+    if (!localSpace && glm::distance(worldPos, body->position) < 1.9*body->get_size()*criticalRadiusScalar)
     {
         localSpace = true;
     }
-    else
+
+    // case: inside critical radius
+    if (localSpace && glm::distance(worldPos, body->position) > 2.5*body->get_size()*criticalRadiusScalar)
     {
         localSpace = false;
+    }
+}
+
+void Player::basic_collision_detection()
+{
+    if (glm::distance(worldPos, body->position) < body->get_size())
+    {
+        worldPos = body->position - 1.005*body->get_size()*glm::normalize(body->position - worldPos);
     }
 }
 
@@ -42,9 +53,7 @@ void Player::check_soi()
     if (glm::distance(worldPos, body->position) > body->orbit->get_soi())
     {
         // settomg old body to red
-        body->set_colour(glm::vec3{1.0f, 0.0f, 0.0f});
         body = body->parent;
-        body->set_colour(glm::vec3{0.0f, 1.0f, 0.0f});
         return;
     }
 
@@ -55,9 +64,7 @@ void Player::check_soi()
         {
             // debugging
             // set old body to red
-            body->set_colour(glm::vec3{1.0f, 0.0f, 0.0f});
             body = child;
-            child->set_colour(glm::vec3{0.0f, 1.0f, 0.0f});
             return;
         }
     }

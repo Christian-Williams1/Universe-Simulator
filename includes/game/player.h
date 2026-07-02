@@ -16,6 +16,7 @@ class Player
         void check_critical_radius();
         bool get_local_space();
         Body *get_body();
+        void basic_collision_detection();
 
         glm::dvec3 worldPos;
         float criticalRadiusScalar = 1.05;

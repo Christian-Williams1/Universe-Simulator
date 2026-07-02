@@ -16,5 +16,4 @@ void main()
     fragCol = lighting;
 
     brightColor = vec4(0.0f);
-
 }

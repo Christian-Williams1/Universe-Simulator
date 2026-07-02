@@ -32,7 +32,7 @@ float lastY = cfg::winHeight / 2.0f;
 SimState glblState = {0.0, 1.0, 0.0};
 
 // debugging states
-bool debugMode = true;
+bool debugMode = false;
 DebugCamera *glblDebug = nullptr;
 
 int main()
@@ -119,7 +119,7 @@ int main()
     StarField *starfield = new StarField(starfieldShader);
 
     // idk
-    Shader shaders[4] = {planetShader, sunShader, starfieldShader, cameraShader};
+    Shader shaders[4] = {sunShader, planetShader, starfieldShader, cameraShader};//sunShader,
 
     // enabling some random shi idk anymore kms
     glPointSize(1.5f);
@@ -127,17 +127,18 @@ int main()
     // glEnable(GL_MULTISAMPLE);
 
     // generating sphere
-    CubeSphere cubeSphere(20);
+    CubeSphere cubeSphere(200);
 
     // creating planets
-    Body *sun = new Body(nullptr, glm::vec3{1.0f, 0.9f, 0.3f}, {0, 0, 0, 0, 0}, 100.0f, 10000.0f);
-    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, 1080.0, 0.0, 0.0, 0.0}, 50.0f, 500.0f);
-    Body *planetT = new Body(sun, glm::vec3{1.0f, 0.05f, 0.09f}, {0.0, 4000.0, 0.01, 0.01, 1.50}, 70.0f, 700.0f);
-    Body *planetTh = new Body(sun, glm::vec3{0.4f, 0.9f, 0.25f}, {0.0, 8000.0, 0.09, 0.01, 0.90}, 80.0f, 800.0f);
-    Body *moon = new Body(planet, glm::vec3{0.4f, 0.5f, 0.25f}, {0.05, 300.0, 0.01, 0.1, 0.0}, 10.9f, 200.0f);
-    Body *moonT = new Body(planet, glm::vec3{0.0f, 0.5f, 0.25f}, {0.05, 450.0, 0.02, 0.2, 0.0}, 10.9f, 200.0f);
-    Body *moonTh = new Body(planetT, glm::vec3{0.5f, 0.5f, 0.5f}, {0.05, 450.0, 0.03, 0.0, 0.0}, 5.9f, 120.6f);
-    Body *moonF = new Body(planet, glm::vec3{0.9f, 0.5f, 0.25f}, {0.05, 600.0, 0.04, 0.1, 0.0}, 1.9f, 50.2f);
+    float scaleFact = 1;
+    Body *sun = new Body(nullptr, glm::vec3{1.0f, 0.9f, 0.3f}, {0, 0, 0, 0, 0}, scaleFact*100.0f, 10000.0f);
+    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, scaleFact*1080.0, 0.0, 0.0, 0.0}, scaleFact*50.0f, 500.0f);
+    Body *planetT = new Body(sun, glm::vec3{1.0f, 0.05f, 0.09f}, {0.0, scaleFact*4000.0, 0.01, 0.01, 1.50}, scaleFact*70.0f, 700.0f);
+    Body *planetTh = new Body(sun, glm::vec3{0.4f, 0.9f, 0.25f}, {0.0, scaleFact*8000.0, 0.09, 0.01, 0.90}, scaleFact*80.0f, 800.0f);
+    Body *moon = new Body(planet, glm::vec3{0.4f, 0.5f, 0.25f}, {0.05, scaleFact*300.0, 0.01, 0.1, 0.0}, scaleFact*10.9f, 200.0f);
+    Body *moonT = new Body(planet, glm::vec3{0.0f, 0.5f, 0.25f}, {0.05, scaleFact*450.0, 0.02, 0.2, 0.0}, scaleFact*10.9f, 200.0f);
+    Body *moonTh = new Body(planetT, glm::vec3{0.5f, 0.5f, 0.5f}, {0.05, scaleFact*450.0, 0.03, 0.0, 0.0}, scaleFact*5.9f, 120.6f);
+    Body *moonF = new Body(planet, glm::vec3{0.9f, 0.5f, 0.25f}, {0.05, scaleFact*600.0, 0.04, 0.1, 0.0}, scaleFact*1.9f, 50.2f);
     // Body *moonFi = new Body(planet, glm::vec3{0.8f, 0.8f, 0.8f}, {0.05, 10.0, 0.05, 0.1, 0.0}, 0.9f);
 
     sun->children.push_back(planet);
@@ -150,16 +151,9 @@ int main()
     // planetT->children.push_back(moonFi);
 
     std::vector<Body *> bodies = {planet, planetT, planetTh, moonT, moonTh}; //moon, moonF, moonFi};
-    std::vector<SphereRenderer *> sphereRender;
+    SphereRenderer *sphereRender = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, planetShader);
 
     SphereRenderer *daSun = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, sunShader);
-
-    for (auto &body : bodies)
-    {
-        body->set_colour(glm::vec3{1.0f, 0.0f, 0.0f});
-        SphereRenderer *obj = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, planetShader);
-        sphereRender.push_back(obj);
-    }
 
     // creating inputs class
     Player *player = new Player(*sun);
@@ -193,6 +187,8 @@ int main()
 
         // processing any inputs on the stack to update view matrix
         inputs.process_input(deltaTime);
+        // check collision (basic)
+        player->basic_collision_detection();
         if (debugMode)
         {
             debug->update_camera(deltaTime);
@@ -233,7 +229,6 @@ int main()
                 int viewLoc = glGetUniformLocation(shader.shaderID, "view");
                 glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(debug->view));
             }
-            cameraMesh->draw(inputs.projection, inputs.view, debug->projection, debug->view);
         }
 
         // drawing temporary starfield
@@ -252,14 +247,13 @@ int main()
         // rendering planets/sun
         bool scaleSpace = true;
         bool localSpace = player->get_local_space();
+
         // rendering light container (sun)
         glUseProgram(sunShader.shaderID);
-        if (player->get_body() == sun && localSpace)
+
+        if (!(player->get_body() == sun && localSpace))
         {
-            daSun->draw(*sun, player->worldPos, !scaleSpace);
-        }
-        else
-        {
+            glUseProgram(sunShader.shaderID);
             daSun->draw(*sun, player->worldPos, scaleSpace);
         }
 
@@ -271,12 +265,29 @@ int main()
         {
             if (player->get_body() == bodies[i] && localSpace)
             {
-                sphereRender[i]->draw(*bodies[i], player->worldPos, !scaleSpace);
+                continue;
             }
             else
             {
-                sphereRender[i]->draw(*bodies[i], player->worldPos, scaleSpace);
+                sphereRender->draw(*bodies[i], player->worldPos, scaleSpace);
             }
+        }
+
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        if (localSpace)
+        {
+            if (player->get_body() == sun)
+            {
+                glUseProgram(sunShader.shaderID);
+
+            }
+            sphereRender->draw(*player->get_body(), player->worldPos, !scaleSpace);
+        }
+
+        if (debugMode)
+        {
+            cameraMesh->draw(inputs.projection, inputs.view, debug->projection, debug->view);
         }
 
         // final rendering to quad

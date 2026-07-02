@@ -29,8 +29,6 @@ void SphereRenderer::initialise_container(std::vector<glm::vec3> &vertices, std:
 
 void SphereRenderer::draw(Body &body, glm::dvec3 worldPos, bool scaleSpace)
 {
-    glUseProgram(shader->shaderID);
-    
     glBindVertexArray(VAO);
 
     // passing colour

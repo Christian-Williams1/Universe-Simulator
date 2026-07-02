@@ -2,37 +2,42 @@
 
 #include "../config.h"
 #include "player.h"
+#include "../includes/math/math_utils.h"
 
 class Inputs
 {
-    public:
-        // constructor
-        Inputs(GLFWwindow *window, int shader, Player &player);
+public:
+    // constructor
+    Inputs(GLFWwindow *window, int shader, Player &player);
 
-        // user interaction
-        void process_mouse(double xoffset, double yoffset);
-        void process_input(float dt);
+    // user interaction
+    void process_mouse(double xoffset, double yoffset);
+    void process_input(float dt);
 
-        glm::mat4 projection;
-        
-        glm::mat4 view;
+    glm::mat4 projection;
 
-    private:
-        GLFWwindow *window;
+    glm::mat4 view;
 
-        // camera vectors
-        //glm::dvec3 cameraPos = glm::dvec3(0.0f, 0.0f, 5.0f);
-        glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+private:
+    GLFWwindow *window;
 
-        // mouse movements
-        float yaw = -90.0f;
-        float pitch = 0.0f;
-        float lastX;
-        float lastY;
-        float fov;
+    // camera vectors
+    // glm::dvec3 cameraPos = glm::dvec3(0.0f, 0.0f, 5.0f);
+    glm::vec3 localUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 localFront = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 worldUp;
+    glm::vec3 worldFront;
+    glm::quat currentAlign = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    glm::vec3 poleDirection = glm::vec3(1.0f, 0.0f, 0.0f);
 
-        Player *player;
+    // mouse movements
+    float yaw = -90.0f;
+    float pitch = 0.0f;
+    float lastX;
+    float lastY;
+    float fov;
 
-        bool keyDown;
+    Player *player;
+
+    bool keyDown;
 };

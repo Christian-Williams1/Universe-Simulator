@@ -9,6 +9,8 @@ uniform mat4 model;
 uniform vec3 col;
 uniform vec3 worldPos;
 //uniform mat3 transposeInverseModel;
+// light or container
+uniform bool isLight;
 
 out vec3 normal;
 out vec3 color;
