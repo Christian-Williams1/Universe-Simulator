@@ -17,6 +17,11 @@ Inputs::Inputs(GLFWwindow *window, int shader, Player &player)
     this->keyDown = false;
 }
 
+void Inputs::set_projection(float &nearClip, float &farClip)
+{
+    this->projection = glm::perspective(glm::radians(cfg::fov), cfg::winWidth / cfg::winHeight, nearClip, farClip);
+}
+
 void Inputs::process_input(float dt)
 {
 
@@ -27,11 +32,12 @@ void Inputs::process_input(float dt)
     }
     update_orientation();
 
-    glm::quat worldOrientation = orientation;//gravityCorrection*orientation;
+    glm::quat worldOrientation = gravityCorrection * orientation;
 
     glm::vec3 forward = worldOrientation * glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 right = worldOrientation * glm::vec3(1.0f, 0.0f, 0.0f);
     glm::vec3 up = worldOrientation * glm::vec3(0.0f, 1.0f, 0.0f);
+    // forward = glm::normalize(forward - glm::dot(forward, up) * up);
 
     const float cameraSpeed = cfg::speed * dt * glblState.timeScale; // adjust accordingly
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -80,8 +86,20 @@ void Inputs::process_mouse(double xoffset, double yoffset)
     xoffset *= cfg::sensitivity;
     yoffset *= cfg::sensitivity;
 
-    yaw = xoffset*30;
-    pitch = yoffset*30;
+    yaw = xoffset;
+    pitch = yoffset;
+
+    accumulatedPitch += yoffset;
+    if (accumulatedPitch > 89.0f)
+    {
+        accumulatedPitch = 89.0f;
+        pitch = 0.0f;
+    }
+    if (accumulatedPitch < -89.0f)
+    {
+        accumulatedPitch = -89.0f;
+        pitch = 0.0f;
+    }
 }
 
 void Inputs::update_orientation()
@@ -91,28 +109,34 @@ void Inputs::update_orientation()
     glm::vec3 front = orientation * glm::vec3(0.0f, 0.0f, -1.0f);
 
     qCorrection = glm::quat(1.0f, glm::vec3(0.0f));
+    //gravityCorrection = glm::quat(1.0f, glm::vec3(0.0f));
+
+    std::cout << "player: " << glm::length(player->worldPos) << "\n";
+    std::cout << "body:   " << glm::length(player->get_body()->position) << "\n";
+    std::cout << "ratio:  " << glm::length(player->worldPos) / glm::length(player->get_body()->position) << "\n";
 
     if (player->get_local_space())
     {
-        up = -glm::normalize(player->worldPos - player->get_body()->position);
-        gravityCorrection = generate_quat(gravityCorrection*glm::vec3(0.0f, 1.0f, 0.0f), up)*gravityCorrection;
+        glm::vec3 normal = -glm::normalize(player->worldPos - player->get_body()->position);
+        gravityCorrection = generate_quat(gravityCorrection * glm::vec3(0.0f, 1.0f, 0.0f), normal) * gravityCorrection;
+    }
+    else
+    {
+        gravityCorrection = glm::quat(1.0f, glm::vec3(0.0f));
     }
 
-    glm::vec3 desiredRight = glm::normalize(glm::cross(front, -up));
-
-    qCorrection = generate_quat(orientation*right, desiredRight);
-
-    right = desiredRight;
+    gravityCorrection = glm::normalize(glm::slerp(previousGravityCorrection, gravityCorrection, 0.01f));
+    previousGravityCorrection = gravityCorrection;
 
     qYaw = glm::angleAxis(glm::radians(yaw), up);
-    qPitch = glm::angleAxis(glm::radians(pitch), right);
-    glm::quat qPCorrection = glm::angleAxis(pitchCorrection, right);
+    qPitch = glm::angleAxis(glm::radians(pitch), glm::normalize(orientation * right));
 
-    targetOrientation = qCorrection* qPitch * qYaw * orientation;
-    targetOrientation = glm::normalize(targetOrientation);
-    
-    orientation = glm::normalize(glm::slerp(orientation, targetOrientation, 0.05f));
+    // orthonormalize right
 
+    orientation = qPitch * qYaw * orientation;
+    orientation = glm::normalize(orientation);
+
+    // reset movement
     yaw = 0;
     pitch = 0;
 }

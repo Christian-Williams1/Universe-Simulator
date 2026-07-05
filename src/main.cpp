@@ -130,15 +130,15 @@ int main()
     CubeSphere cubeSphere(200);
 
     // creating planets
-    float scaleFact = 1;
-    Body *sun = new Body(nullptr, glm::vec3{1.0f, 0.9f, 0.3f}, {0, 0, 0, 0, 0}, scaleFact*100.0f, 10000.0f);
-    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, scaleFact*1080.0, 0.0, 0.0, 0.0}, scaleFact*50.0f, 500.0f);
-    Body *planetT = new Body(sun, glm::vec3{1.0f, 0.05f, 0.09f}, {0.0, scaleFact*4000.0, 0.01, 0.01, 1.50}, scaleFact*70.0f, 700.0f);
-    Body *planetTh = new Body(sun, glm::vec3{0.4f, 0.9f, 0.25f}, {0.0, scaleFact*8000.0, 0.09, 0.01, 0.90}, scaleFact*80.0f, 800.0f);
-    Body *moon = new Body(planet, glm::vec3{0.4f, 0.5f, 0.25f}, {0.05, scaleFact*300.0, 0.01, 0.1, 0.0}, scaleFact*10.9f, 200.0f);
-    Body *moonT = new Body(planet, glm::vec3{0.0f, 0.5f, 0.25f}, {0.05, scaleFact*450.0, 0.02, 0.2, 0.0}, scaleFact*10.9f, 200.0f);
-    Body *moonTh = new Body(planetT, glm::vec3{0.5f, 0.5f, 0.5f}, {0.05, scaleFact*450.0, 0.03, 0.0, 0.0}, scaleFact*5.9f, 120.6f);
-    Body *moonF = new Body(planet, glm::vec3{0.9f, 0.5f, 0.25f}, {0.05, scaleFact*600.0, 0.04, 0.1, 0.0}, scaleFact*1.9f, 50.2f);
+    float scaleFact = 100.0f;
+    Body *sun = new Body(nullptr, glm::vec3{1.0f, 0.9f, 0.3f}, {0, 0, 0, 0, 0}, scaleFact*100.0f, scaleFact*10000.0f);
+    Body *planet = new Body(sun, glm::vec3{1.0f, 0.5f, 0.25f}, {0.0, scaleFact*1080.0, 0.0, 0.0, 0.0}, scaleFact*50.0f, scaleFact*500.0f);
+    Body *planetT = new Body(sun, glm::vec3{1.0f, 0.05f, 0.09f}, {0.0, scaleFact*4000.0, 0.01, 0.01, 1.50}, scaleFact*70.0f, scaleFact*700.0f);
+    Body *planetTh = new Body(sun, glm::vec3{0.4f, 0.9f, 0.25f}, {0.0, scaleFact*8000.0, 0.09, 0.01, 0.90}, scaleFact*80.0f, scaleFact*800.0f);
+    Body *moon = new Body(planet, glm::vec3{0.4f, 0.5f, 0.25f}, {0.05, scaleFact*300.0, 0.01, 0.1, 0.0}, scaleFact*10.9f, scaleFact*200.0f);
+    Body *moonT = new Body(planet, glm::vec3{0.0f, 0.5f, 0.25f}, {0.05, scaleFact*450.0, 0.02, 0.2, 0.0}, scaleFact*10.9f, scaleFact*200.0f);
+    Body *moonTh = new Body(planetT, glm::vec3{0.5f, 0.5f, 0.5f}, {0.05, scaleFact*450.0, 0.03, 0.0, 0.0}, scaleFact*5.9f, scaleFact*120.6f);
+    Body *moonF = new Body(planet, glm::vec3{0.9f, 0.5f, 0.25f}, {0.05, scaleFact*600.0, 0.04, 0.1, 0.0}, scaleFact*1.9f, scaleFact*50.2f);
     // Body *moonFi = new Body(planet, glm::vec3{0.8f, 0.8f, 0.8f}, {0.05, 10.0, 0.05, 0.1, 0.0}, 0.9f);
 
     sun->children.push_back(planet);
@@ -174,6 +174,13 @@ int main()
     // glEnable(GL_CULL_FACE);
     // glCullFace(GL_BACK);
     // glFrontFace(GL_CCW);
+
+    // setting starfield proj matrix
+    float nearClip = 0.9f;
+    float farClip = 100.0f;
+    inputs.set_projection(nearClip, farClip);
+    glUseProgram(starfieldShader.shaderID);
+    starfieldShader.set_mat4("projection", inputs.projection);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -212,27 +219,24 @@ int main()
             {
                 glUseProgram(shader.shaderID); // remove
 
-                int projLoc = glGetUniformLocation(shader.shaderID, "projection");
-                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(inputs.projection));
-
                 int viewLoc = glGetUniformLocation(shader.shaderID, "view");
                 glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(inputs.view));
             }
         }
 
-        if (debugMode)
-        {
-            for (auto &shader : shaders)
-            {
-                glUseProgram(shader.shaderID); // remove
+        // if (debugMode)
+        // {
+        //     for (auto &shader : shaders)
+        //     {
+        //         glUseProgram(shader.shaderID); // remove
 
-                int projLoc = glGetUniformLocation(shader.shaderID, "projection");
-                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(inputs.projection));
+        //         int projLoc = glGetUniformLocation(shader.shaderID, "projection");
+        //         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(inputs.projection));
 
-                int viewLoc = glGetUniformLocation(shader.shaderID, "view");
-                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(debug->view));
-            }
-        }
+        //         int viewLoc = glGetUniformLocation(shader.shaderID, "view");
+        //         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(debug->view));
+        //     }
+        // }
 
         // drawing temporary starfield
         glDisable(GL_DEPTH_TEST);
@@ -255,17 +259,25 @@ int main()
         player->worldPos += player->get_body()->get_change_in_position();
 
         // player orbits planet when in critical radius
-        // if (localSpace)
-        // {
-        //     glm::mat4 rot = glm::mat4(1.0f);
-        //     rot = glm::translate(rot, glm::vec3(player->get_body()->position));
-        //     rot = glm::rotate(rot, glm::radians(15.0f*deltaTime* (float)glblState.timeScale), glm::vec3(0.0f, 1.0f, 0.0f));
-        //     rot = glm::translate(rot, -glm::vec3(player->get_body()->position));
-        //     player->worldPos = glm::vec3(rot*glm::vec4(player->worldPos, 1.0f));
-        // }
+        if (localSpace)
+        {
+            glm::mat4 rot = glm::mat4(1.0f);
+            rot = glm::translate(rot, glm::vec3(player->get_body()->position));
+            rot = glm::rotate(rot, glm::radians(0.5f*deltaTime* (float)glblState.timeScale), glm::vec3(0.0f, 1.0f, 0.0f));
+            rot = glm::translate(rot, -glm::vec3(player->get_body()->position));
+            player->worldPos = glm::vec3(rot*glm::vec4(player->worldPos, 1.0f));
+        }
+
+        // rendering scale space
+        nearClip = 0.1f;
+        farClip = 100.0f;
+        inputs.set_projection(nearClip, farClip);
 
         // rendering light container (sun)
         glUseProgram(sunShader.shaderID);
+        sunShader.set_mat4("projection", inputs.projection);
+        glUseProgram(planetShader.shaderID);
+        planetShader.set_mat4("projection", inputs.projection);
 
         if (!(player->get_body() == sun && localSpace))
         {
@@ -289,7 +301,19 @@ int main()
             }
         }
 
+        // drawing local space
+
         glClear(GL_DEPTH_BUFFER_BIT);
+
+        nearClip = 3.0f;
+        farClip = 10000.0f;
+        inputs.set_projection(nearClip, farClip);
+
+        // rendering light container (sun)
+        glUseProgram(sunShader.shaderID);
+        sunShader.set_mat4("projection", inputs.projection);
+        glUseProgram(planetShader.shaderID);
+        planetShader.set_mat4("projection", inputs.projection);
 
         if (localSpace)
         {

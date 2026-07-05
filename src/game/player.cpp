@@ -4,7 +4,7 @@ Player::Player(Body &body)
 {
     this->mode = FREEMODE;
     this->body = &body;
-    this->worldPos = glm::dvec3{1000.0f, 0.0f, 0.0f};
+    this->worldPos = glm::dvec3{100.0f*1000.0f, 0.0f, 0.0f};
 }
 
 // getters

@@ -19,5 +19,5 @@ class SphereRenderer
         int idxCount;
 
         // scale factor
-        float scaleFactor = 1e-1;
+        float scaleFactor = 1e-4;
 };

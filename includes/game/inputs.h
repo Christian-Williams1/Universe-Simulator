@@ -14,6 +14,8 @@ public:
     void process_mouse(double xoffset, double yoffset);
     void process_input(float dt);
 
+    void set_projection(float &nearClip, float &farClip);
+
     glm::mat4 projection;
 
     glm::mat4 view;
@@ -35,11 +37,12 @@ private:
 
     glm::quat qCorrection;
     glm::quat gravityCorrection = glm::quat(1.0f, glm::vec3(0.0f));
-    float pitchCorrection;
+    glm::quat previousGravityCorrection = glm::quat(1.0f, glm::vec3(0.0f));
 
     // mouse movements
     float yaw = -90.0f;
     float pitch = 0.0f;
+    float accumulatedPitch = 0.0f;
     float lastX;
     float lastY;
     float fov;
