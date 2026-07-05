@@ -102,7 +102,7 @@ int main()
     glViewport(0, 0, cfg::winWidth, cfg::winHeight);
 
     // defining simulation state default parameters
-    glblState.timeScale = 0.0f;
+    glblState.timeScale = 1.0f;
 
     // compiling shaders
     Shader planetShader("../shaders/vertex.vert", "../shaders/planet.frag");
@@ -187,6 +187,9 @@ int main()
 
         // processing any inputs on the stack to update view matrix
         inputs.process_input(deltaTime);
+
+        // updating orientation
+
         // check collision (basic)
         player->basic_collision_detection();
         if (debugMode)
@@ -247,6 +250,19 @@ int main()
         // rendering planets/sun
         bool scaleSpace = true;
         bool localSpace = player->get_local_space();
+
+        // player follows planets when in SOI
+        player->worldPos += player->get_body()->get_change_in_position();
+
+        // player orbits planet when in critical radius
+        // if (localSpace)
+        // {
+        //     glm::mat4 rot = glm::mat4(1.0f);
+        //     rot = glm::translate(rot, glm::vec3(player->get_body()->position));
+        //     rot = glm::rotate(rot, glm::radians(15.0f*deltaTime* (float)glblState.timeScale), glm::vec3(0.0f, 1.0f, 0.0f));
+        //     rot = glm::translate(rot, -glm::vec3(player->get_body()->position));
+        //     player->worldPos = glm::vec3(rot*glm::vec4(player->worldPos, 1.0f));
+        // }
 
         // rendering light container (sun)
         glUseProgram(sunShader.shaderID);

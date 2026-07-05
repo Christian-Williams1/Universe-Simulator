@@ -37,6 +37,11 @@ bool Body::get_type()
     return this->lightSource;
 }
 
+glm::dvec3 Body::get_change_in_position()
+{
+    return position - previousPosition ;
+}
+
 // setters
 void Body::set_colour(glm::vec3 colour)
 {
@@ -45,6 +50,7 @@ void Body::set_colour(glm::vec3 colour)
 
 void Body::orbit_traverse(glm::dvec3 &position)
 {
+    this->previousPosition = this->position;
     this->position = orbit->calculate_position() + position;
 
     for (auto &child : children)

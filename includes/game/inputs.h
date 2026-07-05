@@ -19,16 +19,23 @@ public:
     glm::mat4 view;
 
 private:
+
     GLFWwindow *window;
 
+    // helper function
+    void update_orientation();
+
     // camera vectors
-    // glm::dvec3 cameraPos = glm::dvec3(0.0f, 0.0f, 5.0f);
-    glm::vec3 localUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 localFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 worldUp;
-    glm::vec3 worldFront;
-    glm::quat currentAlign = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-    glm::vec3 poleDirection = glm::vec3(1.0f, 0.0f, 0.0f);
+    glm::quat orientation = glm::quat(0.0f, 0.0f, 0.0f, -1.0f);
+    glm::quat pOrientation = glm::quat(0.0f, 0.0f, 0.0f, -1.0f);
+    glm::quat targetOrientation = glm::quat(0.0f, 0.0f, 0.0f, -1.0f);
+
+    glm::quat qPitch;
+    glm::quat qYaw;
+
+    glm::quat qCorrection;
+    glm::quat gravityCorrection = glm::quat(1.0f, glm::vec3(0.0f));
+    float pitchCorrection;
 
     // mouse movements
     float yaw = -90.0f;
@@ -37,6 +44,7 @@ private:
     float lastY;
     float fov;
 
+    // player-> to see player state and determine the types of motion
     Player *player;
 
     bool keyDown;

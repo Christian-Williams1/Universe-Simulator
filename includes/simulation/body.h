@@ -10,9 +10,12 @@ class Body
     public:
         Body(Body *parent, glm::vec3 color, KeplerianElements elements, float size, double mass);
 
+        // getters 
         double get_size();
         glm::vec3 get_color();
         bool get_type();
+        glm::dvec3 get_change_in_position();
+
         void set_colour(glm::vec3 colour);
 
         glm::vec3 next_position();
@@ -28,9 +31,12 @@ class Body
         glm::dvec3 position;
     
     private:
-        //std::vector<Body *> children;
+
+        glm::dvec3 deltaPosition;
+        glm::dvec3 previousPosition;
 
         bool lightSource;
+
         double size;
         double mass;
         glm::vec3 colour;
