@@ -54,8 +54,6 @@ glm::vec3 rotate_vector(glm::vec3 vector, glm::vec2 rotationVector)
 }
 
 // finds the quaternion representing the rotation from u->v.
-// default Q gives the shortest rotation.
-// the return will give the quat closest to Q that rotates u -> v
 glm::quat generate_quat(glm::vec3 u, glm::vec3 v, glm::quat Q)
 {
     glm::quat rotation;

@@ -21,7 +21,6 @@ public:
     glm::mat4 view;
 
 private:
-
     GLFWwindow *window;
 
     // helper function
@@ -35,8 +34,7 @@ private:
     glm::quat qPitch;
     glm::quat qYaw;
 
-    glm::quat qCorrection;
-    glm::quat gravityCorrection = glm::quat(1.0f, glm::vec3(0.0f));
+    glm::quat qCorrection = glm::quat(1.0f, glm::vec3(0.0f));
     glm::quat previousGravityCorrection = glm::quat(1.0f, glm::vec3(0.0f));
 
     // mouse movements

@@ -1,17 +1,27 @@
 #include <iostream>
+
+// *** USER GENERATED INCLUDES ***
 #include "../includes/config.h"
 #include "../includes/render/shader.h"
 #include "../includes/game/inputs.h"
 #include "../includes/render/cube_sphere.h"
 #include "../includes/render/sphere_render.h"
 #include "../includes/render/cube_map.h"
+
+// *** SIMULATION ***
 #include "../includes/simulation/body.h"
 #include "../includes/simulation/orbit.h"
+
 #include "../includes/game/player.h"
+
+// *** POST PROCESSING ***
 #include "../includes/render/bloom.h"
 #include "../includes/render/point_sphere.h"
 
-// debug
+// *** BILLBOARD ***
+#include "../includes/render/billboard/billboard.h"
+
+// *** DEBUG ***
 #include "../debug/debug_camera.h"
 #include "../debug/camera_mesh.h"
 
@@ -37,6 +47,8 @@ DebugCamera *glblDebug = nullptr;
 
 int main()
 {
+    // *** CONFIGURING SCREEN, SHADERS, CALLBACKS ***
+
     // Setting up window
     if (!glfwInit())
     {
@@ -104,12 +116,15 @@ int main()
     // defining simulation state default parameters
     glblState.timeScale = 1.0f;
 
-    // compiling shaders
-    Shader planetShader("../shaders/vertex.vert", "../shaders/planet.frag");
-    Shader sunShader("../shaders/vertex.vert", "../shaders/sun.frag");
+    // *** SHADER COMPILATION ***
+    // Note: Potentially switch to json style configuration
 
-    Shader ppBloom("../shaders/bloom.vert", "../shaders/bloom.frag"); // swapped bloom and blur add to video
-    Shader ppBlur("../shaders/bloom.vert", "../shaders/blur.frag");
+    // compiling shaders
+    Shader planetShader("../shaders/containers/vertex.vert", "../shaders/containers/planet.frag");
+    Shader sunShader("../shaders/containers/vertex.vert", "../shaders/containers/sun.frag");
+
+    Shader ppBloom("../shaders/post_processing/bloom.vert", "../shaders/post_processing/bloom.frag"); // swapped bloom and blur add to video
+    Shader ppBlur("../shaders/post_processing/bloom.vert", "../shaders/post_processing/blur.frag");
 
     // debug camera
     Shader cameraShader("../shaders/camera.vert", "../shaders/camera.frag");
@@ -118,13 +133,16 @@ int main()
     Shader starfieldShader("../shaders/starfield.vert", "../shaders/starfield.frag");
     StarField *starfield = new StarField(starfieldShader);
 
+    // sun billboard shader
+
     // idk
     Shader shaders[4] = {sunShader, planetShader, starfieldShader, cameraShader};//sunShader,
 
     // enabling some random shi idk anymore kms
     glPointSize(1.5f);
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_MULTISAMPLE);
+
+    // *** HARDCODING PLANET PARAMETERS ***
 
     // generating sphere
     CubeSphere cubeSphere(200);
@@ -139,22 +157,19 @@ int main()
     Body *moonT = new Body(planet, glm::vec3{0.0f, 0.5f, 0.25f}, {0.05, scaleFact*450.0, 0.02, 0.2, 0.0}, scaleFact*10.9f, scaleFact*200.0f);
     Body *moonTh = new Body(planetT, glm::vec3{0.5f, 0.5f, 0.5f}, {0.05, scaleFact*450.0, 0.03, 0.0, 0.0}, scaleFact*5.9f, scaleFact*120.6f);
     Body *moonF = new Body(planet, glm::vec3{0.9f, 0.5f, 0.25f}, {0.05, scaleFact*600.0, 0.04, 0.1, 0.0}, scaleFact*1.9f, scaleFact*50.2f);
-    // Body *moonFi = new Body(planet, glm::vec3{0.8f, 0.8f, 0.8f}, {0.05, 10.0, 0.05, 0.1, 0.0}, 0.9f);
 
     sun->children.push_back(planet);
     sun->children.push_back(planetT);
     sun->children.push_back(planetTh);
-    //planet->children.push_back(moon);
     planet->children.push_back(moonT);
     planetT->children.push_back(moonTh);
-    // planetT->children.push_back(moonF);
-    // planetT->children.push_back(moonFi);
 
-    std::vector<Body *> bodies = {planet, planetT, planetTh, moonT, moonTh}; //moon, moonF, moonFi};
+    std::vector<Body *> bodies = {planet, planetT, planetTh, moonT, moonTh};
     SphereRenderer *sphereRender = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, planetShader);
 
     SphereRenderer *daSun = new SphereRenderer(cubeSphere.vertices, cubeSphere.indices, sunShader);
 
+    // *** CREATING CAMERA AND DEBUG CLASS
     // creating inputs class
     Player *player = new Player(*sun);
     Inputs inputs(window, planetShader.shaderID, *player);
@@ -165,10 +180,15 @@ int main()
     glblDebug = debug;
     CameraMesh *cameraMesh = new CameraMesh(cameraShader);
 
+    // *** POST PROCESSING ***
     // creating bloom effect class
     Bloom *bloom = new Bloom(ppBloom, ppBlur);
 
     glUseProgram(planetShader.shaderID);
+
+    // *** TEXTURED BILLBOARDS ***
+    Shader billboardShader("../shaders/billboard/billboard.vert", "../shaders/billboard/billboard.frag");
+    Billboard *billboard = new Billboard(billboardShader);
 
     // enable face culling
     // glEnable(GL_CULL_FACE);
@@ -224,19 +244,20 @@ int main()
             }
         }
 
-        // if (debugMode)
-        // {
-        //     for (auto &shader : shaders)
-        //     {
-        //         glUseProgram(shader.shaderID); // remove
+        if (debugMode)
+        {
+            glUseProgram(cameraShader.shaderID); // remove
 
-        //         int projLoc = glGetUniformLocation(shader.shaderID, "projection");
-        //         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(inputs.projection));
+            int projLoc = glGetUniformLocation(cameraShader.shaderID, "projection");
+            glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(inputs.projection));
+            for (auto &shader : shaders)
+            {
+                glUseProgram(shader.shaderID); // remove
 
-        //         int viewLoc = glGetUniformLocation(shader.shaderID, "view");
-        //         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(debug->view));
-        //     }
-        // }
+                int viewLoc = glGetUniformLocation(shader.shaderID, "view");
+                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(debug->view));
+            }
+        }
 
         // drawing temporary starfield
         glDisable(GL_DEPTH_TEST);
@@ -263,7 +284,7 @@ int main()
         {
             glm::mat4 rot = glm::mat4(1.0f);
             rot = glm::translate(rot, glm::vec3(player->get_body()->position));
-            rot = glm::rotate(rot, glm::radians(0.5f*deltaTime* (float)glblState.timeScale), glm::vec3(0.0f, 1.0f, 0.0f));
+            rot = glm::rotate(rot, glm::radians(0.05f*deltaTime* (float)glblState.timeScale), glm::vec3(0.0f, 1.0f, 0.0f));
             rot = glm::translate(rot, -glm::vec3(player->get_body()->position));
             player->worldPos = glm::vec3(rot*glm::vec4(player->worldPos, 1.0f));
         }
@@ -284,6 +305,8 @@ int main()
             glUseProgram(sunShader.shaderID);
             daSun->draw(*sun, player->worldPos, scaleSpace);
         }
+
+        billboard->draw(player->worldPos, inputs.view, inputs.projection);
 
         // rendering containers (planets)
         glUseProgram(planetShader.shaderID);
@@ -308,6 +331,9 @@ int main()
         nearClip = 3.0f;
         farClip = 10000.0f;
         inputs.set_projection(nearClip, farClip);
+
+        // draw billboard
+        billboard->draw(player->worldPos, inputs.view, inputs.projection);
 
         // rendering light container (sun)
         glUseProgram(sunShader.shaderID);
@@ -334,6 +360,7 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // apply post
         glUseProgram(ppBlur.shaderID);
         bloom->draw_quad();
 
@@ -341,10 +368,16 @@ int main()
         glfwPollEvents(); // remove events from stack
     }
 
+    // *** SAFELY EXIT PROGRAM ***
+    // NEED TO DO: DESTROY CLASSES
     glBindVertexArray(0);
     glfwDestroyWindow(window);
+
+
     return 0;
 }
+
+// *** CALLBACKS ***
 
 // controlling rotational movement of the screen via mouse
 void mouse_callback(GLFWwindow *window, double xpos, double ypos)
